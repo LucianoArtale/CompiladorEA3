@@ -109,22 +109,16 @@ int elemTake;
     char *str_val;
 }
 
-//%type <str_val> id
+%type <str_val> prog
 %type <str_val> sent
-%type <str_val> read
-%type <str_val> write
 %type <str_val> asig
-/*%type <str_val> lista_var
-%type <int_val> cte
-%type <str_val> cte_String
-%type <float_val> cte_Real*/
+%type <str_val> take
+%type <str_val> lista
+
+%type <str_val> WRITE
+%type <str_val> READ
 
 
-%token DIGITO
-%token LETRA
-
-%token <int_val> CTE
-%token <str_val> ID
 %token TAKE
 %token WRITE
 %token READ
@@ -132,38 +126,40 @@ int elemTake;
 %token PC
 %token ASIGNA
 %token MAS
-%token <str_val> CTE_S
 %token CA
 %token CC
 %token PYC
 %token COMA
+%token <str_val> ID
+%token <str_val> CTE_S
+%token <int_val> CTE
 
 
 %%
 
 prog:
     sent {printf("\nRegla 1\n");}
-    | prog sent {printf("Regla 2\n");}
+    | prog sent {printf("\nRegla 2\n");}
     ;
 
 sent:
-    read {printf("Regla 3\n");}
-    | asig {printf("Regla 3\n");}
-    | write {printf("Regla 3\n");}
+    rd {printf("\nRegla 3\n");}
+    | asig {printf("\nRegla 3\n");}
+    | wrt {printf("\nRegla 3\n");}
     ;
 
 asig:
-    ID ASIGNA take {printf("Regla 4\n");}
+    ID ASIGNA take {printf("\nRegla 4\n");}
     ;
 
-read:
-    READ ID {printf("Regla 5\n");}
+rd:
+    READ ID {printf("\nRegla 5\n");}
     ;
 
 take:
     TAKE PA MAS PYC CTE 
     {
-        printf("Regla 6\n");
+        printf("\nRegla 6\n");
         /*if(CTE > 0)
         {
             elemTake=cte;
@@ -174,28 +170,20 @@ take:
             exit(0);
         }*/
     }
-    PYC CA lista CC 
-    {
-        /*if(elemEnLista < elemTake)
-        {
-            printf("Error: El número de elementos en la lista es menor al indicado para operar");
-            exit(0);
-        }*/
-    }
-    PC
+    PYC CA lista CC PC {printf("\nRegla 6.1\n");}
     ;
 
 lista:
     CTE
     {
-        printf("Regla 7\n");
+        printf("\nRegla 7\n");
         /*contadorElemAOperar=1; 
         lp=insertarTerceto(id, "", "");
         elemEnLista=1;*/
     }
     | lista COMA CTE
     {
-        printf("Regla 8\n");
+        printf("\nRegla 8\n");
         /*if(contadorElemAOperar < elemTake)
         {
             lp=insertarTerceto(op, lp, insertarTerceto (CTE, "", ""));
@@ -205,9 +193,9 @@ lista:
     }
     ;
 
-write:
-    WRITE CTE_S {printf("Regla 9\n");}
-    | WRITE ID {printf("Regla 10\n");}
+wrt:
+    WRITE CTE_S {printf("\nRegla 9\n");}
+    | WRITE ID {printf("\nRegla 10\n");}
     ;
 
 %%
@@ -226,13 +214,15 @@ int main(int argc,char *argv[])
   }
   else
   {
-    printf("Iniciando main\n");
+    printf("\nIniciando main\n");
     crearPila(&pilaIds);
     //crearPila(&pilaFactorial);
     //crearPolaca(&polaca);
     //crearPila(&pilaCMP);
     //crearPila(&pilaTipoDato);
+    printf("Iniciando Parsing\n");
     yyparse();
+    printf("Fin Parsing\n");
   }
   //guardarPolaca(&polaca);
   
