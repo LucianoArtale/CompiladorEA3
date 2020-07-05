@@ -34,9 +34,6 @@ CC                  "]"
 PYC                 ";"
 COMA		        ","
 
-MUL                 [\*]
-CUALQUIER_DIGITO    ({CARACTER_ESPECIAL})*|({LETRA}|{DIGITO})*
-
 
 %%
 {DIGITO}            {return DIGITO;}
@@ -56,10 +53,6 @@ CUALQUIER_DIGITO    ({CARACTER_ESPECIAL})*|({LETRA}|{DIGITO})*
 {CC}                {return CC;}
 {PYC}               {return PYC;}
 {COMA}		        {return COMA;}
-
-{MUL}		        {return MUL;}
-
-
 
 
 {ID}                {
@@ -81,11 +74,11 @@ CUALQUIER_DIGITO    ({CARACTER_ESPECIAL})*|({LETRA}|{DIGITO})*
                             sprintf(nombreString,"_%s",yytext);
                             sprintf(longitudString,"%d",strlen(yytext));
                             if(existeEnTS(yytext)==0)
-                            insertarEnNuevaTS(nombreString,"Cte_String",yylval.str_val,longitudString); 
+                            insertarEnNuevaTS(nombreString,"Cte_S",yylval.str_val,longitudString); 
                             
                             printf("Texto capturado: %s",yytext);
 
-                                return CTE_STRING;
+                                return CTE_S;
                         } else {
                                 printf("ERROR - Constante string muy larga. Maximo 30 caracteres\n");
                                 system ("Pause");
@@ -102,9 +95,9 @@ CUALQUIER_DIGITO    ({CARACTER_ESPECIAL})*|({LETRA}|{DIGITO})*
                                 sprintf(nombreEntero,"_%s",valorEntero);
 
                                 if(existeEnTS(yytext)==0)
-  									insertarEnNuevaTS(nombreEntero,"Cte_Entera",valorEntero,""); 
+  									insertarEnNuevaTS(nombreEntero,"Cte",valorEntero,""); 
 									
-                                return CTE_ENTERA; 
+                                return CTE; 
 							}else{
 									printf("ERROR - Int fuera de rango.\n");
 									system ("Pause");
@@ -112,9 +105,4 @@ CUALQUIER_DIGITO    ({CARACTER_ESPECIAL})*|({LETRA}|{DIGITO})*
 							}
                     }
 
-{CUALQUIER_DIGITO}	{
-                        printf("Se detecto un digito erroneo: %s", yytext);
-                        system ("Pause");
-                        exit(1);
-                    };
 %%

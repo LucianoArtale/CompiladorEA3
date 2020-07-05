@@ -42,6 +42,9 @@ struct datoTS {
 	char *longitud;
 };
 
+struct datoTS tablaDeSimbolos[100];
+int cantFilasTS = 0;
+
 //Pila
 typedef struct
 {
@@ -75,14 +78,15 @@ t_info* verTopeDePila(t_pila*);
 int pilaVacia (const t_pila*);
 
 //internas del compilador
+int mostrarTS();
 void insertarTipoDatoEnTS(char*, char*);
-int insertarEnNuevaTS(char*,char*,char*,char*);
+void insertarEnNuevaTS(char*,char*,char*,char*);
 int existeEnTS(char *);
 void guardarTS();
 int validarTipoDatoEnTS(char*, char*); 
 int ponerValorEnTS(char*, char*);
-void invertirComparador(char *);
-char* tieneTipoDatoEnTS(char* nombre);
+char* tieneTipoDatoEnTS(char*);
+//char* obtenerNroParaTipoEnTS(char*, char*)
 
 
 /////////////////VARIABLES///////////////////
@@ -98,32 +102,29 @@ int elemTake;
 %}
 
 
-/*
+
 %union {
     int int_val;
     double float_val;
     char *str_val;
 }
 
-%type <str_val> id
-%type <str_val> expresion
-%type <str_val> termino
-%type <str_val> factor
-%type <str_val> sentencia
-%type <str_val> GET
-%type <str_val> DISPLAY
-%type <str_val> asignacion
-%type <str_val> lista_var
+//%type <str_val> id
+%type <str_val> sent
+%type <str_val> read
+%type <str_val> write
+%type <str_val> asig
+/*%type <str_val> lista_var
 %type <int_val> cte
 %type <str_val> cte_String
-%type <float_val> cte_Real
-*/
+%type <float_val> cte_Real*/
+
 
 %token DIGITO
 %token LETRA
 
-%token CTE
-%token ID
+%token <int_val> CTE
+%token <str_val> ID
 %token TAKE
 %token WRITE
 %token READ
@@ -131,7 +132,7 @@ int elemTake;
 %token PC
 %token ASIGNA
 %token MAS
-%token CTE_S
+%token <str_val> CTE_S
 %token CA
 %token CC
 %token PYC
@@ -205,8 +206,8 @@ lista:
     ;
 
 write:
-    write CTE_S {printf("Regla 9\n");}
-    | write ID {printf("Regla 10\n");}
+    WRITE CTE_S {printf("Regla 9\n");}
+    | WRITE ID {printf("Regla 10\n");}
     ;
 
 %%
@@ -257,13 +258,13 @@ int yyerror(void)
 /////////////////////////////////////FUNCIONES DE TS/////////////////////////////////////
 
 mostrarTS(){
-    int i=0;
-    for(i; i<cantFilasTS;i++)
-    { 
-     printf("Verificando: %s\t\t\t%s\t\t\t%s\t\t\t\n",tablaDeSimbolos[i].nombre,tablaDeSimbolos[i].tipoDato,tablaDeSimbolos[i].valor);
-    }
-    return 0;
+  int i=0;
+  for(i; i<cantFilasTS;i++)
+  { 
+    printf("Verificando: %s\t\t\t%s\t\t\t%s\t\t\t\n",tablaDeSimbolos[i].nombre,tablaDeSimbolos[i].tipoDato,tablaDeSimbolos[i].valor);
   }
+  return 0;
+}
 
 
 int existeEnTS(char *nombre){
@@ -280,18 +281,18 @@ int existeEnTS(char *nombre){
     return 0;
   }
 
-    insertarEnNuevaTS(char* nombre, char* tipoDato, char* valor, char* longitud){
-    struct datoTS dato;
+void insertarEnNuevaTS(char* nombre, char* tipoDato, char* valor, char* longitud)
+{
+  struct datoTS dato;
 
-	  dato.nombre = nombre;
-	  dato.tipoDato = tipoDato;
-	  dato.valor = valor;
-	  dato.longitud = longitud;
-	  tablaDeSimbolos[cantFilasTS] = dato;
-	  
-    cantFilasTS++; 
-      
-  }
+  dato.nombre = nombre;
+  dato.tipoDato = tipoDato;
+  dato.valor = valor;
+  dato.longitud = longitud;
+  tablaDeSimbolos[cantFilasTS] = dato;
+  
+  cantFilasTS++; 
+}
 
 void insertarTipoDatoEnTS(char* nombre, char* tipoDato){
     char* nombreVariable = (char*) malloc(sizeof(nombre)+1);
@@ -354,7 +355,7 @@ int validarTipoDatoEnTS(char* nombre, char* tipoDato){
   }
 
 
-  void guardarTS()
+void guardarTS()
 {
 	FILE *file = fopen("ts.txt", "w+");
 	
@@ -389,7 +390,7 @@ char* tieneTipoDatoEnTS(char* nombre){
     printf("\nError! No existe la variable en la tabla de simbolos");	  
     return "";
 }   
-
+/*
 char* obtenerNroParaTipoEnTS(char* linea, char* tipoDato){
     char* nombreVariable = (char*) malloc(sizeof(linea)+1);
     sprintf(nombreVariable,"_%s",linea);    
@@ -414,13 +415,14 @@ char* obtenerNroParaTipoEnTS(char* linea, char* tipoDato){
     }
     return "";
 }
-
+*/
 
 
 /////////////////////////////////////FUNCIONES DE PILA/////////////////////////////////////
 
 void crearPila(t_pila* p){
 		*p=NULL;
+    printf("Pila creada\n");
 }
 
 int vaciarPila(t_pila* p)
@@ -505,7 +507,7 @@ void desapilar_str(t_pila *p, char* str)
 
     free(aux);
 }
-
+/*
 t_info * desapilarASM(t_pila *p)
 {   
 	t_info* info = (t_info *) malloc(sizeof(t_info));
@@ -516,7 +518,7 @@ t_info * desapilarASM(t_pila *p)
 	    *p=(*p)->sig;
 	    return info;
 }
-
+*/
 t_info* verTopeDePila(t_pila* p)
 {   if(*p==NULL)
     return(0); 
@@ -528,7 +530,7 @@ t_info* verTopeDePila(t_pila* p)
     return(info);
 }
 
-int pilaVacia (const t_pila* p)
+int pilaVacia(const t_pila* p)
 {
     return *p==NULL;
 }
