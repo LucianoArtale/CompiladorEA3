@@ -53,7 +53,8 @@ CTE_S               \"{VALID_STRING}\"
 
 {ID}                {
                         yylval.str_val = yytext; 
-                        char *nombreId = (char*) malloc(sizeof(yytext)+1);
+                        //char *nombreId = (char*) malloc(sizeof(yytext)+1);
+                        char *nombreId = (char*) malloc(50*sizeof(char));
                         sprintf(nombreId,"_%s",yylval.str_val);
 
                         //if(existeEnTS(yytext)==0)
@@ -66,8 +67,10 @@ CTE_S               \"{VALID_STRING}\"
                         yylval.str_val = strdup(yytext);
                         if(strlen(yytext) <= 100) 
                         {
-                            char *longitudString = (char*) malloc(sizeof(yytext)+1);
-                            char *nombreString = (char*) malloc(sizeof(yytext)+1);
+                            //char *longitudString = (char*) malloc(sizeof(yytext)+1);
+                            char *longitudString = (char*) malloc(50*sizeof(char));
+                            //char *nombreString = (char*) malloc(sizeof(yytext)+1);
+                            char *nombreString = (char*) malloc(50*sizeof(char));
                             sprintf(nombreString,"_%s",yytext);
                             sprintf(longitudString,"%d",strlen(yytext));
                             //if(existeEnTS(yytext)==0)
@@ -77,7 +80,7 @@ CTE_S               \"{VALID_STRING}\"
 
                                 return CTE_S;
                         } else {
-                                printf("ERROR - Constante string muy larga. Maximo 30 caracteres\n");
+                                printf("ERROR - Constante string muy larga. Maximo 100 caracteres\n");
                                 system ("Pause");
                                 exit(3);
                         }
@@ -86,8 +89,10 @@ CTE_S               \"{VALID_STRING}\"
 {CTE}               {  
                         yylval.int_val = atoi(yytext);
 							if(atoi(yytext) <= TOPE_ENTERO){
-                                char *valorEntero = (char*) malloc(sizeof(yytext));
-                                char *nombreEntero = (char*) malloc(sizeof(yytext)+1);
+                                //char *valorEntero = (char*) malloc(sizeof(yytext));
+                                char *valorEntero = (char*) malloc(50*sizeof(char));
+                                //char *nombreEntero = (char*) malloc(sizeof(yytext)+1);
+                                char *nombreEntero = (char*) malloc(50*sizeof(char));
                                 sprintf(valorEntero,"%d",atoi(yytext));
                                 sprintf(nombreEntero,"_%s",valorEntero);
 

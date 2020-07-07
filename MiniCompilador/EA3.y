@@ -16,22 +16,22 @@ FILE  *yyin;
 ////////////////////ESTRUCTURAS////////////////////
 
 
-//Tercetos
+//Terceto
 typedef struct
 {
     int nro;
     char cad1[MAXCAD];
     char cad2[MAXCAD];
     char cad3[MAXCAD];
-    int result;
-}t_infoTercetos;
+    //int result;
+}t_infoTerceto;
 
-typedef struct s_nodoTercetos{
-    t_infoTercetos info;
-    struct s_nodoTercetos* psig;
-}t_nodoTercetos;
+typedef struct s_nodoTerceto{
+    t_infoTerceto info;
+    struct s_nodoTerceto* psig;
+}t_nodoTerceto;
 
-typedef t_nodoTercetos *t_tercetos;
+typedef t_nodoTerceto *t_terceto;
 
 
 //Tabla de simbolos
@@ -67,16 +67,6 @@ typedef t_nodoPila *t_pila;
 
 ////////////////////FUNCIONES////////////////////
 
-//Definición funciones de pilas
-int vaciarPila(t_pila*);
-t_info* desapilar(t_pila*);
-void desapilar_str(t_pila*, char*);
-int desapilar_nro(t_pila *);
-void crearPila(t_pila*);
-int apilar(t_pila*,t_info*);
-t_info* verTopeDePila(t_pila*);
-int pilaVacia (const t_pila*);
-
 //internas del compilador
 int mostrarTS();
 void insertarTipoDatoEnTS(char*, char*);
@@ -88,16 +78,48 @@ int ponerValorEnTS(char*, char*);
 char* tieneTipoDatoEnTS(char*);
 //char* obtenerNroParaTipoEnTS(char*, char*)
 
+//Definición funciones de pilas
+int vaciarPila(t_pila*);
+t_info* desapilar(t_pila*);
+void desapilar_str(t_pila*, char*);
+int desapilar_nro(t_pila *);
+void crearPila(t_pila*);
+int apilar(t_pila*,t_info*);
+t_info* verTopeDePila(t_pila*);
+int pilaVacia (const t_pila*);
+
+//Funciones de Tercetos
+void crearTerceto(t_terceto*);
+int insertarTerceto(t_terceto*, char*, char*, char*);
+int guardarTercetos(t_terceto*);
+
+
+
 
 /////////////////VARIABLES///////////////////
 
+//Tercetos
 t_pila pilaIds;
-t_tercetos tercetos;
+t_terceto tercetos;
+int posicionTerceto; //sacar?
 
-int contadorElem;
+//Indices
+//int progIND;
+//int sentIND;
+int asigIND;
+int rdIND;
+int takeIND;
+int listaIND;
+int wrtIND;
+
+//otras
+int contadorElemAOperar;
 int elemEnLista;
 int elemTake;
 
+
+
+/////////////////////////////////////////INICIO REGLAS/////////////////////////////////////////
 
 %}
 
@@ -114,7 +136,6 @@ int elemTake;
 %type <str_val> asig
 %type <str_val> take
 %type <str_val> lista
-
 %type <str_val> WRITE
 %type <str_val> READ
 
@@ -153,13 +174,27 @@ asig:
     ;
 
 rd:
-    READ ID {printf("\nRegla 5\n");}
+    READ ID 
+    {
+      printf("\nRegla 5\n");
+
+      t_info *tInfoPilaId=(t_info*) malloc(sizeof(t_info));
+      tInfoPilaId->cadena = (char *) malloc (MAXCAD * sizeof (char));
+      strcpy(tInfoPilaId->cadena,$1);
+      apilar(&pilaIds,tInfoPilaId);
+    }
     ;
 
 take:
-    TAKE PA MAS PYC CTE 
+    TAKE PA MAS PYC ID 
     {
         printf("\nRegla 6\n");
+
+        /*t_info *tInfoPilaId=(t_info*) malloc(sizeof(t_info));
+        tInfoPilaId->cadena = (char *) malloc (MAXCAD * sizeof (char));
+        strcpy(tInfoPilaId->cadena,"@n");
+        apilar(&pilaIds,tInfoPilaId);*/
+
         /*if(CTE > 0)
         {
             elemTake=cte;
@@ -170,32 +205,59 @@ take:
             exit(0);
         }*/
     }
-    PYC CA lista CC PC {printf("\nRegla 6.1\n");}
+    PYC CA lista CC 
+    {
+        printf("\nRegla 6.1\n");
+        /*if(elemEnLista < elemTake)
+        {
+            printf("Error: El número de elementos en la lista es menor al indicado para operar");
+            exit(0);
+        }*/
+    }
+    PC {printf("\nRegla 6.2\n");}
     ;
 
 lista:
     CTE
     {
         printf("\nRegla 7\n");
-        /*contadorElemAOperar=1; 
-        lp=insertarTerceto(id, "", "");
-        elemEnLista=1;*/
+
+        contadorElemAOperar = 1; 
+        char numStr[MAXINT];
+        sprintf(numStr,"%d",$1);
+        listaIND = insertarTerceto(&tercetos, numStr, "", "");
+        printf("LISTA CTE: %d", listaIND);
+        elemEnLista = 1;
     }
     | lista COMA CTE
     {
         printf("\nRegla 8\n");
-        /*if(contadorElemAOperar < elemTake)
+
+        if(contadorElemAOperar < elemTake)
         {
-            lp=insertarTerceto(op, lp, insertarTerceto (CTE, "", ""));
-            contadorElemAOperar++;
+          char aux1ListaIND[MAXINT], numStr[MAXINT], aux2ListaIND[MAXINT]; 
+          sprintf(aux1ListaIND,"%d", listaIND);
+          sprintf(numStr,"%d",$3);
+          sprintf(aux2ListaIND,"%d", insertarTerceto(&tercetos, numStr, "", ""));
+          listaIND = insertarTerceto(&tercetos, "+", aux1ListaIND, aux2ListaIND);
+          contadorElemAOperar++;
         }
-        elemEnLista++;*/
+        elemEnLista++;
     }
     ;
 
 wrt:
-    WRITE CTE_S {printf("\nRegla 9\n");}
-    | WRITE ID {printf("\nRegla 10\n");}
+    WRITE CTE_S 
+    {
+      printf("\nRegla 9\n");
+
+      wrtIND = insertarTerceto(&tercetos, "WRITE", $2, "");
+      printf("WRITE: %d", wrtIND);
+    }
+    | WRITE ID 
+    {
+      printf("\nRegla 10\n");
+    }
     ;
 
 %%
@@ -208,6 +270,9 @@ int main(int argc,char *argv[])
   //char cadena[] = "ID";
   //int value = 0;
   //fprintf(archTabla,"%s\n","NOMBRE\t\t\tTIPODATO\t\tVALOR");
+  posicionTerceto = 1;
+  elemTake = 5; //                   ->            LUEGO BORRAR
+
   if ((yyin = fopen(argv[1], "rt")) == NULL)
   {
 	  printf("\nNo se puede abrir el archivo: %s\n", argv[1]);
@@ -216,15 +281,18 @@ int main(int argc,char *argv[])
   {
     printf("\nIniciando main\n");
     crearPila(&pilaIds);
-    //crearPila(&pilaFactorial);
-    //crearPolaca(&polaca);
+    crearTerceto(&tercetos);
     //crearPila(&pilaCMP);
     //crearPila(&pilaTipoDato);
     printf("Iniciando Parsing\n");
     yyparse();
     printf("Fin Parsing\n");
   }
-  //guardarPolaca(&polaca);
+  if(guardarTercetos(&tercetos) < 0)
+  {
+    printf("\nError generando el archivo de notacion intermedia\n");
+    return 0;
+  }
   
   //printf("Validando tipo de dato: %d",validarTipoDatoEnTS("a1","STRING"));
   //mostrarTS();
@@ -524,3 +592,99 @@ int pilaVacia(const t_pila* p)
 {
     return *p==NULL;
 }
+
+
+/////////////////////////////////////FUNCIONES DE TERCETOS/////////////////////////////////////
+
+//Creo el terceto
+void crearTerceto(t_terceto* p)
+{
+  *p=NULL;
+  return;
+}
+
+
+//Pongo el nodo del terceto a lo último, con sus respectivos datos y hago que apunte a null su siguiente
+int insertarTerceto(t_terceto* p, char *cad1, char *cad2, char *cad3)
+{
+  t_nodoTerceto* nue = (t_nodoTerceto*)malloc(sizeof(t_nodoTerceto));
+  if(!nue){
+      printf("\nError al insertar terceto\n");
+      return ERROR;
+  }
+  printf("Iniciando insertarTerceto\n");
+  t_nodoTerceto* aux;
+    
+  //Ponemos la posicion en el terceto
+  int indice = posicionTerceto++;
+  nue->info.nro = indice;
+  printf("posicionTerceto++\n");
+  //Asignamos las cadenas al nodo
+  strcpy(nue->info.cad1,cad1);
+  printf("cad1 asignada\n");
+  strcpy(nue->info.cad2,cad2);
+  printf("cad2 asignada\n");
+  strcpy(nue->info.cad3,cad3);
+  printf("cad3 asignada\n");
+  //Hacemos que sea el último nodo en la lista de tercetos
+  nue->psig=NULL;
+  printf("psig creado\n");
+      
+  while(*p)
+  {
+      p=&(*p)->psig;
+  }
+  *p=nue;
+  printf("p apunta a nue, fin insertarTerceto\n");
+
+  return indice;
+}
+
+
+//Guardo los tercetos en el archivo de intermedia
+int guardarTercetos(t_terceto *p)
+{
+  FILE*pf=fopen("Intermedia.txt","w+");
+  
+  t_nodoTerceto* aux;
+  
+  aux=*p;
+
+  if(!pf){
+    //No se creó el archivo de intermedia en el main
+    return ERROR;
+  }
+
+  t_nodoTerceto* nodoActual;
+
+  while(aux)
+    {
+        nodoActual=aux;
+
+        fprintf(pf, "%d %s %s %s\n",nodoActual->info.nro, nodoActual->info.cad1, nodoActual->info.cad2, nodoActual->info.cad3);
+        
+    aux=(aux)->psig;
+    
+    //free(nodoActual);
+    }
+  fclose(pf);
+}
+
+
+
+/*int ponerEnTercetosPosicion(t_terceto* p,int pos, char *cadena){
+		t_nodoPolaca* aux;
+		
+		aux=*p;
+		
+	    while(aux!=NULL && aux->info.nro != pos){
+	    	aux=aux->psig;
+	    }
+	    
+		if(aux->info.nro==pos){
+	    	strcpy(aux->info.cadena,cadena);
+	    	return OK;
+	    }
+
+	    return ERROR;
+}*/
