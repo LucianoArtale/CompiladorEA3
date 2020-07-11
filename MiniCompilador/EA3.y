@@ -109,6 +109,7 @@ t_pila pilaCteString;
 t_pila pilaCteStringTP;
 t_pila pilaCteInt;
 t_pila pilaVarInt;
+t_pila auxiliaresASM;
 
 ///Indices
 int progIND;
@@ -127,8 +128,11 @@ char elemEnListaStr[] = "@elemEnLista";
 char elemTakeVar[] = "@elemTake";
 int contPilaCteString;
 int contPilaVarInt;
-
-
+char resTake[] = "@resTake";
+char contadorTake[] = "@contadorTake";
+char cero[] = "@cero";
+char strAuxASM[] = "@aux";
+int contAuxASM;
 
 /////////////////////////////////////////INICIO REGLAS/////////////////////////////////////////
 
@@ -218,9 +222,11 @@ asig:
     {
       printf("\nRegla 4\n");
 
-      char listaINDStr[MAXINT];
-      sprintf(listaINDStr,"[%d]", listaIND);
-      asigIND = insertarTerceto(&tercetos, "=", $1, listaINDStr);
+      char listaINDStr[MAXINT], varId[] = "_";
+      sprintf(listaINDStr,"[%d", listaIND);
+      strcat(varId, $1);
+      //asigIND = insertarTerceto(&tercetos, "=", varId, listaINDStr);
+      asigIND = insertarTerceto(&tercetos, "=", varId, resTake);
 
       t_info *tInfoVarInt=(t_info*) malloc(sizeof(t_info));
       if(!tInfoVarInt)
@@ -271,15 +277,15 @@ take:
           exit(0);
       }*/
 
-      char cero[] = "@cero", idTake[] = "@";
+      char idTake[] = "_";
       //sprintf(cero,"%d",0);
       strcat(idTake, $5);
-
+      printf("CMP - %s - %s\n", idTake, cero);
       insertarTerceto(&tercetos, "CMP", idTake, cero);
       insertarTerceto(&tercetos, "BLE", "EtiqError1", "");
 
       insertarTerceto(&tercetos, "CMP", elemEnListaStr, idTake);
-      insertarTerceto(&tercetos, "BGE", "EtiqError2", "");
+      insertarTerceto(&tercetos, "BLT", "EtiqError2", "");
 
       insertarTerceto(&tercetos, "=", elemTakeVar, idTake);
     }
@@ -303,6 +309,7 @@ take:
       printf("\nRegla 6.2\n");
 
       takeIND = listaIND;
+      insertarTerceto(&tercetos, "ETIQ", "ETIQFINTAKE", "");
     }
     ;
 
@@ -311,11 +318,25 @@ lista:
     {
       printf("\nRegla 7\n");
 
-      //contadorElemAOperar = 1; 
       char numStr[MAXINT];
       sprintf(numStr,"%d",$1);
       listaIND = insertarTerceto(&tercetos, numStr, "", "");
-      //printf("LISTA CTE: %d", listaIND);
+
+      //Apilo el auxiliar del terceto para el ASM
+      //strcpy(strAuxASM, "@aux");
+      sprintf(strAuxASM,"@aux%d",listaIND);
+      //strcat(strAuxASM, listaINDStr);
+      //printf("Numero de terceto por apilarse: %s\n", strAuxASM);
+      t_info *tInfoAuxASM=(t_info*) malloc(sizeof(t_info));
+      if(!tInfoAuxASM)
+      {
+        return;
+      }
+      tInfoAuxASM->nro = listaIND;
+      tInfoAuxASM->cadena = strAuxASM;
+      apilar(&auxiliaresASM, tInfoAuxASM);
+      contAuxASM = 1;
+
       elemEnLista = 1;
 
       t_info *tInfoCteInt=(t_info*) malloc(sizeof(t_info));
@@ -325,21 +346,67 @@ lista:
       }
       tInfoCteInt->nro = $1;
       apilar(&pilaCteInt, tInfoCteInt);
+
+      insertarTerceto(&tercetos, "=", strAuxASM, "@cte_int1");
+      //aumentar contador en asm
+      insertarTerceto(&tercetos, "CONT++", contadorTake, "");
+      //agregar comparacion
+      insertarTerceto(&tercetos, "CMP", contadorTake, elemTakeVar);
+      insertarTerceto(&tercetos, "BGE", "ETIQFINTAKE", "");
     }
     | lista COMA CTE
     {
       printf("\nRegla 8\n");
 
-      //if(contadorElemAOperar < elemTake)
-      //{
-        char aux1ListaIND[MAXINT], numStr[MAXINT], aux2ListaIND[MAXINT]; 
-        sprintf(aux1ListaIND,"[%d]", listaIND);
-        sprintf(numStr,"%d",$3);
-        sprintf(aux2ListaIND,"[%d]", insertarTerceto(&tercetos, numStr, "", ""));
-        listaIND = insertarTerceto(&tercetos, "+", aux1ListaIND, aux2ListaIND);
-        //contadorElemAOperar++;
-      //}
+      int valorListaIND2;
+      char aux1ListaIND[MAXINT], numStr[MAXINT], aux2ListaIND[MAXINT], cteNombre[MAXCAD], strAuxASM2[MAXCAD]; 
+      sprintf(aux1ListaIND,"[%d", listaIND);
+      sprintf(numStr,"%d",$3);
+      valorListaIND2 = insertarTerceto(&tercetos, numStr, "", "");
+
       elemEnLista++;
+      //printf("ACTUALMENTE EN LA LISTA HAY %d ELEMENTOS\n", elemEnLista);
+      sprintf(cteNombre, "@cte_int%d", elemEnLista);
+      sprintf(strAuxASM2, "@aux%d", valorListaIND2);
+      insertarTerceto(&tercetos, "=", strAuxASM2, cteNombre);
+
+      sprintf(aux2ListaIND,"[%d", valorListaIND2);
+      listaIND = insertarTerceto(&tercetos, "+", aux1ListaIND, aux2ListaIND);
+
+      //Apilo el auxiliar 2 del terceto para el ASM
+      sprintf(strAuxASM,"@aux%d",valorListaIND2);
+      //printf("Numero de terceto por apilarse: %s\n", strAuxASM);
+      t_info *tInfoAuxASM=(t_info*) malloc(sizeof(t_info));
+      if(!tInfoAuxASM)
+      {
+        return;
+      }
+      tInfoAuxASM->nro = valorListaIND2;
+      tInfoAuxASM->cadena = strAuxASM;
+      apilar(&auxiliaresASM, tInfoAuxASM);
+      contAuxASM++;
+
+      //asigno el terceto a la var resultado del take
+      //insertarTerceto(&tercetos, "=", resTake, strAuxASM);
+      //strcpy(strAuxASM2, strAuxASM);
+
+      //Apilo el auxiliar suma del terceto para el ASM
+      sprintf(strAuxASM,"@aux%d",listaIND);
+      //printf("Numero de terceto por apilarse: %s\n", strAuxASM);
+      t_info *tInfoAuxASM2=(t_info*) malloc(sizeof(t_info));
+      if(!tInfoAuxASM2)
+      {
+        return;
+      }
+      tInfoAuxASM2->nro = listaIND;
+      tInfoAuxASM2->cadena = strAuxASM;
+      apilar(&auxiliaresASM, tInfoAuxASM2);
+      contAuxASM++;
+
+      //insertarTerceto(&tercetos, "=", strAuxASM, strAuxASM2);
+      insertarTerceto(&tercetos, "=", resTake, strAuxASM);
+
+      //elemEnLista++;
 
       t_info *tInfoCteInt=(t_info*) malloc(sizeof(t_info));
       if(!tInfoCteInt)
@@ -348,6 +415,12 @@ lista:
       }
       tInfoCteInt->nro = $3;
       apilar(&pilaCteInt, tInfoCteInt);
+
+      //aumento contador take
+      insertarTerceto(&tercetos, "CONT++", contadorTake, "");
+      //agregar comparacion
+      insertarTerceto(&tercetos, "CMP", contadorTake, elemTakeVar);
+      insertarTerceto(&tercetos, "BGE", "ETIQFINTAKE", "");
     }
     ;
 
@@ -825,10 +898,15 @@ int guardarTercetos(t_terceto *p)
 
 void generarAssembler(t_terceto *p)
 {
-  t_nodoTerceto *aux; 
+  t_nodoTerceto *aux;
+  int nro; 
   char *primera;
   char *segunda;
   char *tercera;
+
+  char corchete = '[';
+  char *numTerceto;
+  int contCteInt = 1;
 
   FILE* pf=fopen("final.asm","w+");
   if(!pf){
@@ -846,8 +924,8 @@ void generarAssembler(t_terceto *p)
 
   ///DECLARACIONES
   
-  int pcs, pci, pvi;
-  char cteString[MAXCAD], varInt[MAXCAD], cteStringNom[MAXCAD];
+  int pcs, pci, pvi, paa;
+  char cteString[MAXCAD], varInt[MAXCAD], cteStringNom[MAXCAD], auxASM[MAXCAD];
 
 
   for(pcs=contPilaCteString; pcs >= 1; pcs--)
@@ -855,9 +933,9 @@ void generarAssembler(t_terceto *p)
     desapilar_str(&pilaCteString, cteString);
     fprintf(pf,"@cte_string%d db %s, '$', 30 dup (?)\n", pcs, cteString);
     
-    printf("Numero a asignarse: %d\n", pcs);
+    //printf("Numero a asignarse: %d\n", pcs);
     sprintf(cteStringNom,"cte_string%d", pcs);
-    printf("Nombre a asignarse: %s\n", cteStringNom);
+    //printf("Nombre a asignarse: %s\n", cteStringNom);
     t_info *tInfoCteStringTP=(t_info*) malloc(sizeof(t_info));
     if(!tInfoCteStringTP)
     {
@@ -875,7 +953,14 @@ void generarAssembler(t_terceto *p)
   for(pvi=contPilaVarInt; pvi >= 1; pvi--)
   {
     desapilar_str(&pilaVarInt, varInt);
-    fprintf(pf,"@%s dd ?\n", varInt);
+    fprintf(pf,"_%s dd ?\n", varInt);
+  }
+
+  for(paa=contAuxASM; paa >= 1; paa--)
+  {
+    //desapilar_str(&auxiliaresASM, auxASM);
+    //fprintf(pf,"%s dd ?\n", auxASM);
+    fprintf(pf,"@aux%d dd ?\n", desapilar_nro(&auxiliaresASM));
   }
 
   fprintf(pf,"%s dd ?\n", elemTakeVar);
@@ -888,9 +973,9 @@ void generarAssembler(t_terceto *p)
   fprintf(pf,"@contadorTake dd 0\n");
   fprintf(pf,"@resTake dd 0\n");
   char error1[] = "Error: El numero de elementos a operar debe ser mayor a 0";
-  fprintf(pf,"@error1 db %s, '$', 30 dup (?)\n", error1);
+  fprintf(pf,"@error1 db \"%s\", '$', 30 dup (?)\n", error1);
   char error2[] = "Error: El numero de elementos en la lista es menor al indicado para operar";
-  fprintf(pf,"@error2 db %s, '$', 30 dup (?)\n", error2);
+  fprintf(pf,"@error2 db \"%s\", '$', 30 dup (?)\n", error2);
 
 
   ///CODIGO
@@ -914,6 +999,7 @@ void generarAssembler(t_terceto *p)
     aux = *p;
 
     ///Obtengo el terceto en partes
+    nro = (*p)->info.nro;
     primera = (char *) malloc (sizeof((*p)->info.cad1));
     sprintf(primera,"%s",(*p)->info.cad1);
     segunda = (char *) malloc (sizeof((*p)->info.cad2));
@@ -921,7 +1007,7 @@ void generarAssembler(t_terceto *p)
     tercera = (char *) malloc (sizeof((*p)->info.cad3));
     sprintf(tercera,"%s",(*p)->info.cad3);
 
-    printf("1: %s | 2: %s | 3: %s\n", primera, segunda, tercera);
+    printf("nro: %d | 1: %s | 2: %s | 3: %s\n", nro, primera, segunda, tercera);
 
     ///WRITE
     if(strcmpi(primera,"WRITES")==0)
@@ -936,23 +1022,160 @@ void generarAssembler(t_terceto *p)
       if(strcmpi(primera,"WRITEI")==0)
       {
         fprintf(pf,";WRITE\n");
-        fprintf(pf,"\tdisplayInteger \t@%s,3\n\tnewLine 1\n", segunda);
+        fprintf(pf,"\tdisplayInteger \t_%s,3\n\tnewLine 1\n", segunda);
       }
     }
 
     ///READ
+    if(strcmpi(primera,"READ")==0)
+    {
+      fprintf(pf,";READ\n");
+      fprintf(pf,"\tgetInteger \t_%s,3\n\tnewLine 1\n",segunda);
+    }
 
+    ///ASIGNACION
+    if(strcmpi(primera,"=")==0)
+    {
+      fprintf(pf,";ASIGNACION\n");
+      numTerceto = strchr(tercera, corchete);
+      if(numTerceto==NULL)
+      {
+        fprintf(pf,"\tfild \t%s\n", tercera);
+      }
+      else
+      {
+        numTerceto++;
+        fprintf(pf,"\tfild \t@aux%s\n", numTerceto);
+      }
+      //fprintf(pf,"\tfild \t%s\n", tercera);
+      /*fprintf(pf,"\tfild \t@cte_int%s\n", contCteInt);
+      contCteInt++;*/
+      numTerceto = strchr(segunda, corchete);
+      if(numTerceto==NULL)
+      {
+        fprintf(pf,"\tfistp \t%s\n", segunda);
+      }
+      else
+      {
+        numTerceto++;
+        fprintf(pf,"\tfistp \t@aux%s\n", numTerceto);
+      }
+      //fprintf(pf,"\tfistp \t%s\n", segunda);
+    }
+
+    ///SUMA
+    if(strcmpi(primera,"+")==0)
+    {
+      fprintf(pf,";SUMA\n");
+      numTerceto = strchr(segunda, corchete);
+      if(numTerceto!=NULL)
+      {
+        numTerceto++;
+        fprintf(pf,"\tfild \t@aux%s\n", numTerceto);
+        /*fprintf(pf,"\tfild \t@cte_int%s\n", contCteInt);
+        contCteInt++;*/
+      }
+      numTerceto = strchr(tercera, corchete);
+      if(numTerceto!=NULL)
+      {
+        numTerceto++;
+        fprintf(pf,"\tfiadd \t@aux%s\n", numTerceto);
+        fprintf(pf,"\tfistp \t@aux%d\n", nro);
+      }
+      //fprintf(pf,"\tfiadd \t%s\n", segunda);
+      //fprintf(pf,"\tfistp \t%s\n", segunda);
+    }
+
+    ///AUMENTO CONTADOR TAKE
+    if(strcmpi(primera,"CONT++")==0)
+    {
+      fprintf(pf,";AUMENTAR CONTADOR TAKE\n");
+      fprintf(pf,"\tfild \t@uno\n");
+      fprintf(pf,"\tfiadd \t%s\n", segunda);
+      fprintf(pf,"\tfistp \t%s\n", segunda);
+    }
+
+    ///ETIQUETAS
+    if(strcmpi(primera, "ETIQ")==0)
+    {
+      fprintf(pf,"%s:\n", segunda);
+    }
     
 
+    
+    ///COMPARACION
+    if(strcmpi(primera,"CMP")==0)
+    {
+      fprintf(pf,";COMPARACION\n");
+      //numTerceto = strchr(segunda, corchete);
+      //if(numTerceto==NULL)
+      //{
+        fprintf(pf,"\tfild \t%s\n", segunda);
+      /*}
+      else
+      {
+        fprintf(pf,"\tfild \t@aux%s\n", numTerceto);
+      }*/
 
+      //numTerceto = strchr(tercera, corchete);
+      //if(numTerceto==NULL)
+      //{
+        fprintf(pf,"\tfild \t%s\n", tercera);
+      /*}
+      else
+      {
+        fprintf(pf,"\tfild \t@aux%s\n", numTerceto);
+      }*/
 
+      ///Leo un terceto mas
+      *p=(*p)->psig;
+      free(aux);
+      aux = *p;
+      primera = (char *) malloc (sizeof((*p)->info.cad1));
+      sprintf(primera,"%s",(*p)->info.cad1);
+      segunda = (char *) malloc (sizeof((*p)->info.cad2));
+      sprintf(segunda,"%s",(*p)->info.cad2);
+
+      if(strcmpi(primera,"BLE")==0)
+      {
+        fprintf(pf,"\tfxch\n \tfcomp\n \tfstsw \tax\n \tsahf\n \tjbe \t%s\n", segunda);
+      }
+
+      if(strcmpi(primera,"BLT")==0)
+      {
+        fprintf(pf,"\tfxch\n \tfcomp\n \tfstsw \tax\n \tsahf\n \tjb \t%s\n", segunda);
+      }
+
+      if(strcmpi(primera,"BGE")==0)
+      {
+        fprintf(pf,"\tfxch\n \tfcomp\n \tfstsw \tax\n \tsahf\n \tjae \t%s\n", segunda);
+      }
+    }
+
+    //printf("Llego al final del while\n");
 
     *p=(*p)->psig;
     free(aux);
   }
 
+  ///Salto para evitar errores
+  fprintf(pf,"\tjmp \tETIQFINPROG\n");
+
+  ///Errores
+  fprintf(pf,";ERROR 1\n");
+  fprintf(pf,"EtiqError1:\n");
+  fprintf(pf,"\tdisplayString \t@error1\n\tnewLine 1\n");
+  fprintf(pf,"\tjmp \tETIQFINPROG\n");
+
+  fprintf(pf,";ERROR 2\n");
+  fprintf(pf,"EtiqError2:\n");
+  fprintf(pf,"\tdisplayString \t@error2\n\tnewLine 1\n");
+  fprintf(pf,"\tjmp \tETIQFINPROG\n");
+
 
   ///FINAL ARCHIVO ASM
+
+  fprintf(pf,"\nETIQFINPROG:\n");
 
   fprintf(pf,"\n\tMOV EAX, 4c00h\n\tINT 21h\n");
   fprintf(pf,"END MAIN\n\n;FIN DEL PROGRAMA DE USUARIO\n");

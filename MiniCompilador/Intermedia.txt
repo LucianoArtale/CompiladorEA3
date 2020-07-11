@@ -1,48 +1,44 @@
 1 WRITES "Ingrese un digito del uno al veinte: " 
-2 = n 
-3 CMP @elemTake 0
+2 READ n 
+3 CMP _n @cero
 4 BLE EtiqError1 
-5 1  
-6 2  
-7 + [5] [6]
-8 3  
-9 + [7] [8]
-10 4  
-11 + [9] [10]
-12 5  
-13 + [11] [12]
-14 6  
-15 + [13] [14]
-16 7  
-17 + [15] [16]
-18 8  
-19 + [17] [18]
-20 9  
-21 + [19] [20]
-22 10  
-23 + [21] [22]
-24 11  
-25 + [23] [24]
-26 12  
-27 + [25] [26]
-28 13  
-29 + [27] [28]
-30 14  
-31 + [29] [30]
-32 15  
-33 + [31] [32]
-34 16  
-35 + [33] [34]
-36 17  
-37 + [35] [36]
-38 18  
-39 + [37] [38]
-40 19  
-41 + [39] [40]
-42 20  
-43 + [41] [42]
-44 CMP 20 @elemTake
-45 BGE EtiqError2 
-46 = resu [43]
-47 WRITES "El resultado es: " 
-48 WRITEI resu 
+5 CMP @elemEnLista _n
+6 BLT EtiqError2 
+7 = @elemTake _n
+8 1  
+9 = @aux8 @cte_int1
+10 CONT++ @contadorTake 
+11 CMP @contadorTake @elemTake
+12 BGE ETIQFINTAKE 
+13 2  
+14 = @aux13 @cte_int2
+15 + [8 [13
+16 = @resTake @aux15
+17 CONT++ @contadorTake 
+18 CMP @contadorTake @elemTake
+19 BGE ETIQFINTAKE 
+20 3  
+21 = @aux20 @cte_int3
+22 + [15 [20
+23 = @resTake @aux22
+24 CONT++ @contadorTake 
+25 CMP @contadorTake @elemTake
+26 BGE ETIQFINTAKE 
+27 4  
+28 = @aux27 @cte_int4
+29 + [22 [27
+30 = @resTake @aux29
+31 CONT++ @contadorTake 
+32 CMP @contadorTake @elemTake
+33 BGE ETIQFINTAKE 
+34 5  
+35 = @aux34 @cte_int5
+36 + [29 [34
+37 = @resTake @aux36
+38 CONT++ @contadorTake 
+39 CMP @contadorTake @elemTake
+40 BGE ETIQFINTAKE 
+41 ETIQ ETIQFINTAKE 
+42 = _resu @resTake
+43 WRITES "El resultado es: " 
+44 WRITEI resu 
