@@ -1,5 +1,0 @@
-WRITE "Ingrese un digito del uno al veinte: "
-READ n
-resu = TAKE (+ ; n ; [1,2,3,4,5])
-WRITE "El resultado es: "
-WRITE resu
