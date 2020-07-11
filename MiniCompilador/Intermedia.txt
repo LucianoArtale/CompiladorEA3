@@ -38,7 +38,112 @@
 38 CONT++ @contadorTake 
 39 CMP @contadorTake @elemTake
 40 BGE ETIQFINTAKE 
-41 ETIQ ETIQFINTAKE 
-42 = _resu @resTake
-43 WRITES "El resultado es: " 
-44 WRITEI resu 
+41 6  
+42 = @aux41 @cte_int6
+43 + [36 [41
+44 = @resTake @aux43
+45 CONT++ @contadorTake 
+46 CMP @contadorTake @elemTake
+47 BGE ETIQFINTAKE 
+48 7  
+49 = @aux48 @cte_int7
+50 + [43 [48
+51 = @resTake @aux50
+52 CONT++ @contadorTake 
+53 CMP @contadorTake @elemTake
+54 BGE ETIQFINTAKE 
+55 8  
+56 = @aux55 @cte_int8
+57 + [50 [55
+58 = @resTake @aux57
+59 CONT++ @contadorTake 
+60 CMP @contadorTake @elemTake
+61 BGE ETIQFINTAKE 
+62 9  
+63 = @aux62 @cte_int9
+64 + [57 [62
+65 = @resTake @aux64
+66 CONT++ @contadorTake 
+67 CMP @contadorTake @elemTake
+68 BGE ETIQFINTAKE 
+69 10  
+70 = @aux69 @cte_int10
+71 + [64 [69
+72 = @resTake @aux71
+73 CONT++ @contadorTake 
+74 CMP @contadorTake @elemTake
+75 BGE ETIQFINTAKE 
+76 11  
+77 = @aux76 @cte_int11
+78 + [71 [76
+79 = @resTake @aux78
+80 CONT++ @contadorTake 
+81 CMP @contadorTake @elemTake
+82 BGE ETIQFINTAKE 
+83 12  
+84 = @aux83 @cte_int12
+85 + [78 [83
+86 = @resTake @aux85
+87 CONT++ @contadorTake 
+88 CMP @contadorTake @elemTake
+89 BGE ETIQFINTAKE 
+90 13  
+91 = @aux90 @cte_int13
+92 + [85 [90
+93 = @resTake @aux92
+94 CONT++ @contadorTake 
+95 CMP @contadorTake @elemTake
+96 BGE ETIQFINTAKE 
+97 14  
+98 = @aux97 @cte_int14
+99 + [92 [97
+100 = @resTake @aux99
+101 CONT++ @contadorTake 
+102 CMP @contadorTake @elemTake
+103 BGE ETIQFINTAKE 
+104 15  
+105 = @aux104 @cte_int15
+106 + [99 [104
+107 = @resTake @aux106
+108 CONT++ @contadorTake 
+109 CMP @contadorTake @elemTake
+110 BGE ETIQFINTAKE 
+111 16  
+112 = @aux111 @cte_int16
+113 + [106 [111
+114 = @resTake @aux113
+115 CONT++ @contadorTake 
+116 CMP @contadorTake @elemTake
+117 BGE ETIQFINTAKE 
+118 17  
+119 = @aux118 @cte_int17
+120 + [113 [118
+121 = @resTake @aux120
+122 CONT++ @contadorTake 
+123 CMP @contadorTake @elemTake
+124 BGE ETIQFINTAKE 
+125 18  
+126 = @aux125 @cte_int18
+127 + [120 [125
+128 = @resTake @aux127
+129 CONT++ @contadorTake 
+130 CMP @contadorTake @elemTake
+131 BGE ETIQFINTAKE 
+132 19  
+133 = @aux132 @cte_int19
+134 + [127 [132
+135 = @resTake @aux134
+136 CONT++ @contadorTake 
+137 CMP @contadorTake @elemTake
+138 BGE ETIQFINTAKE 
+139 20  
+140 = @aux139 @cte_int20
+141 + [134 [139
+142 = @resTake @aux141
+143 CONT++ @contadorTake 
+144 CMP @contadorTake @elemTake
+145 BGE ETIQFINTAKE 
+146 ETIQ ETIQFINTAKE 
+147 = _resu @resTake
+148 WRITES "El resultado es: " 
+149 WRITEI resu 

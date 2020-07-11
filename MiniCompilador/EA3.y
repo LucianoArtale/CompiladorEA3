@@ -244,11 +244,6 @@ rd:
     {
       printf("\nRegla 5\n");
 
-      /*t_info *tInfoPilaId=(t_info*) malloc(sizeof(t_info));
-      tInfoPilaId->cadena = (char *) malloc (MAXCAD * sizeof (char));
-      strcpy(tInfoPilaId->cadena,$2);
-      apilar(&pilaIds,tInfoPilaId);*/
-
       rdIND = insertarTerceto(&tercetos, "READ", $2, "");
       //printf("READ: %d", rdIND);
       t_info *tInfoVarInt=(t_info*) malloc(sizeof(t_info));
@@ -445,14 +440,6 @@ wrt:
       printf("\nRegla 10\n");
 
       wrtIND = insertarTerceto(&tercetos, "WRITEI", $2, "");
-
-      /*t_info *tInfoVarInt=(t_info*) malloc(sizeof(t_info));
-      if(!tInfoVarInt)
-      {
-        return;
-      }
-      tInfoVarInt->cadena = $2;
-      apilar(&pilaVarInt, tInfoVarInt);*/
     }
     ;
 
@@ -462,12 +449,8 @@ wrt:
 /////////////////////////////////////MAIN Y ERROR/////////////////////////////////////
 
 int main(int argc,char *argv[])
-{ 
-  //char cadena[] = "ID";
-  //int value = 0;
-  //fprintf(archTabla,"%s\n","NOMBRE\t\t\tTIPODATO\t\tVALOR");
+{
   posicionTerceto = 1;
-  //elemTake = 20; //                   ->            LUEGO BORRAR
   contPilaCteString = 0;
   contPilaVarInt = 0;
 
@@ -497,10 +480,7 @@ int main(int argc,char *argv[])
     return 0;
   }
   generarAssembler(&tercetos);
-  //printf("Validando tipo de dato: %d",validarTipoDatoEnTS("a1","STRING"));
-  //mostrarTS();
-  //guardarTS();
-  //generarAssembler(&polaca);
+  
   fclose(yyin);
   printf("Fin main\n");
 
@@ -872,25 +852,6 @@ int guardarTercetos(t_terceto *p)
     }
   fclose(pf);
 }
-
-
-
-/*int ponerEnTercetosPosicion(t_terceto* p,int pos, char *cadena){
-		t_nodoPolaca* aux;
-		
-		aux=*p;
-		
-	    while(aux!=NULL && aux->info.nro != pos){
-	    	aux=aux->psig;
-	    }
-	    
-		if(aux->info.nro==pos){
-	    	strcpy(aux->info.cadena,cadena);
-	    	return OK;
-	    }
-
-	    return ERROR;
-}*/
 
 
 ////////////////////////////////////////////////ASSEMBLER////////////////////////////////////////////////
