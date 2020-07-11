@@ -52,7 +52,7 @@ CTE_S               \"{VALID_STRING}\"
 {COMA}		        {return COMA;}
 
 {ID}                {
-                        yylval.str_val = yytext; 
+                        yylval.str_val = strdup(yytext); 
                         //char *nombreId = (char*) malloc(sizeof(yytext)+1);
                         char *nombreId = (char*) malloc(50*sizeof(char));
                         sprintf(nombreId,"_%s",yylval.str_val);

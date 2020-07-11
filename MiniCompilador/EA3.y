@@ -16,7 +16,7 @@ FILE  *yyin;
 ////////////////////ESTRUCTURAS////////////////////
 
 
-//Terceto
+///Terceto
 typedef struct
 {
     int nro;
@@ -34,7 +34,7 @@ typedef struct s_nodoTerceto{
 typedef t_nodoTerceto *t_terceto;
 
 
-//Tabla de simbolos
+///Tabla de simbolos              ----->            SACAR
 struct datoTS {
 	char *nombre;
 	char *tipoDato;
@@ -45,12 +45,12 @@ struct datoTS {
 struct datoTS tablaDeSimbolos[100];
 int cantFilasTS = 0;
 
-//Pila
+///Pila
 typedef struct
 {
     char* cadena;
     int nro;
-    char* tipoDeDato;
+    //char* tipoDeDato;
 }t_info;
 
 typedef struct s_nodoPila
@@ -67,7 +67,7 @@ typedef t_nodoPila *t_pila;
 
 ////////////////////FUNCIONES////////////////////
 
-//internas del compilador
+///internas del compilador
 int mostrarTS();
 void insertarTipoDatoEnTS(char*, char*);
 void insertarEnNuevaTS(char*,char*,char*,char*);
@@ -78,7 +78,7 @@ int ponerValorEnTS(char*, char*);
 char* tieneTipoDatoEnTS(char*);
 //char* obtenerNroParaTipoEnTS(char*, char*)
 
-//Definición funciones de pilas
+///Definición funciones de pilas
 int vaciarPila(t_pila*);
 t_info* desapilar(t_pila*);
 void desapilar_str(t_pila*, char*);
@@ -88,34 +88,45 @@ int apilar(t_pila*,t_info*);
 t_info* verTopeDePila(t_pila*);
 int pilaVacia (const t_pila*);
 
-//Funciones de Tercetos
+///Funciones de Tercetos
 void crearTerceto(t_terceto*);
 int insertarTerceto(t_terceto*, char*, char*, char*);
 int guardarTercetos(t_terceto*);
 
+///Assembler
+void generarAssembler(t_terceto*);
 
 
 
 /////////////////VARIABLES///////////////////
 
-//Tercetos
-t_pila pilaIds;
+///Tercetos
 t_terceto tercetos;
 int posicionTerceto; //sacar?
 
-//Indices
-//int progIND;
-//int sentIND;
+///Pilas
+t_pila pilaCteString;
+t_pila pilaCteStringTP;
+t_pila pilaCteInt;
+t_pila pilaVarInt;
+
+///Indices
+int progIND;
+int sentIND;
 int asigIND;
 int rdIND;
 int takeIND;
 int listaIND;
 int wrtIND;
 
-//otras
-int contadorElemAOperar;
+///otras
+//int contadorElemAOperar;
 int elemEnLista;
-int elemTake;
+char elemEnListaStr[] = "@elemEnLista";
+//int elemTake;
+char elemTakeVar[] = "@elemTake";
+int contPilaCteString;
+int contPilaVarInt;
 
 
 
@@ -158,19 +169,68 @@ int elemTake;
 
 %%
 
+s:
+  prog 
+  {
+    printf("\nRegla 0\n");
+  }
+  ;
+
+
 prog:
-    sent {printf("\nRegla 1\n");}
-    | prog sent {printf("\nRegla 2\n");}
+    sent 
+    {
+      printf("\nRegla 1\n");
+
+      progIND = sentIND;
+    }
+    | prog sent 
+    {
+      printf("\nRegla 2\n");
+
+      progIND = sentIND;
+    }
     ;
 
 sent:
-    rd {printf("\nRegla 3\n");}
-    | asig {printf("\nRegla 3\n");}
-    | wrt {printf("\nRegla 3\n");}
+    rd 
+    {
+      printf("\nRegla 3\n");
+
+      sentIND = rdIND;
+    }
+    | asig 
+    {
+      printf("\nRegla 3\n");
+
+      sentIND = asigIND;
+    }
+    | wrt 
+    {
+      printf("\nRegla 3\n");
+
+      sentIND = wrtIND;
+    }
     ;
 
 asig:
-    ID ASIGNA take {printf("\nRegla 4\n");}
+    ID ASIGNA take 
+    {
+      printf("\nRegla 4\n");
+
+      char listaINDStr[MAXINT];
+      sprintf(listaINDStr,"[%d]", listaIND);
+      asigIND = insertarTerceto(&tercetos, "=", $1, listaINDStr);
+
+      t_info *tInfoVarInt=(t_info*) malloc(sizeof(t_info));
+      if(!tInfoVarInt)
+      {
+        return;
+      }
+      tInfoVarInt->cadena = $1;
+      apilar(&pilaVarInt, tInfoVarInt);
+      contPilaVarInt++;
+    }
     ;
 
 rd:
@@ -178,71 +238,116 @@ rd:
     {
       printf("\nRegla 5\n");
 
-      t_info *tInfoPilaId=(t_info*) malloc(sizeof(t_info));
+      /*t_info *tInfoPilaId=(t_info*) malloc(sizeof(t_info));
       tInfoPilaId->cadena = (char *) malloc (MAXCAD * sizeof (char));
-      strcpy(tInfoPilaId->cadena,$1);
-      apilar(&pilaIds,tInfoPilaId);
+      strcpy(tInfoPilaId->cadena,$2);
+      apilar(&pilaIds,tInfoPilaId);*/
+
+      rdIND = insertarTerceto(&tercetos, "READ", $2, "");
+      //printf("READ: %d", rdIND);
+      t_info *tInfoVarInt=(t_info*) malloc(sizeof(t_info));
+      if(!tInfoVarInt)
+      {
+        return;
+      }
+      tInfoVarInt->cadena = $2;
+      apilar(&pilaVarInt, tInfoVarInt);
+      contPilaVarInt++;
     }
     ;
 
 take:
     TAKE PA MAS PYC ID 
     {
-        printf("\nRegla 6\n");
+      printf("\nRegla 6\n");
 
-        /*t_info *tInfoPilaId=(t_info*) malloc(sizeof(t_info));
-        tInfoPilaId->cadena = (char *) malloc (MAXCAD * sizeof (char));
-        strcpy(tInfoPilaId->cadena,"@n");
-        apilar(&pilaIds,tInfoPilaId);*/
+      /*if(CTE > 0)
+      {
+          elemTake=cte;
+      }
+      else
+      {
+          printf("Error: El número de elementos a operar debe ser mayor a 0");
+          exit(0);
+      }*/
 
-        /*if(CTE > 0)
-        {
-            elemTake=cte;
-        }
-        else
-        {
-            printf("Error: El número de elementos a operar debe ser mayor a 0");
-            exit(0);
-        }*/
+      char cero[] = "@cero", idTake[] = "@";
+      //sprintf(cero,"%d",0);
+      strcat(idTake, $5);
+
+      insertarTerceto(&tercetos, "CMP", idTake, cero);
+      insertarTerceto(&tercetos, "BLE", "EtiqError1", "");
+
+      insertarTerceto(&tercetos, "CMP", elemEnListaStr, idTake);
+      insertarTerceto(&tercetos, "BGE", "EtiqError2", "");
+
+      insertarTerceto(&tercetos, "=", elemTakeVar, idTake);
     }
     PYC CA lista CC 
     {
-        printf("\nRegla 6.1\n");
-        /*if(elemEnLista < elemTake)
-        {
-            printf("Error: El número de elementos en la lista es menor al indicado para operar");
-            exit(0);
-        }*/
+      printf("\nRegla 6.1\n");
+      /*if(elemEnLista < elemTake)
+      {
+          printf("Error: El número de elementos en la lista es menor al indicado para operar");
+          exit(0);
+      }*/
+      /*char elemEnListaStr[MAXINT];
+      sprintf(elemEnListaStr,"%d",elemEnLista);
+      
+      insertarTerceto(&tercetos, "CMP", elemEnListaStr, elemTakeVar);
+      insertarTerceto(&tercetos, "BGE", "EtiqError2", "");*/
+
     }
-    PC {printf("\nRegla 6.2\n");}
+    PC 
+    {
+      printf("\nRegla 6.2\n");
+
+      takeIND = listaIND;
+    }
     ;
 
 lista:
     CTE
     {
-        printf("\nRegla 7\n");
+      printf("\nRegla 7\n");
 
-        contadorElemAOperar = 1; 
-        char numStr[MAXINT];
-        sprintf(numStr,"%d",$1);
-        listaIND = insertarTerceto(&tercetos, numStr, "", "");
-        printf("LISTA CTE: %d", listaIND);
-        elemEnLista = 1;
+      //contadorElemAOperar = 1; 
+      char numStr[MAXINT];
+      sprintf(numStr,"%d",$1);
+      listaIND = insertarTerceto(&tercetos, numStr, "", "");
+      //printf("LISTA CTE: %d", listaIND);
+      elemEnLista = 1;
+
+      t_info *tInfoCteInt=(t_info*) malloc(sizeof(t_info));
+      if(!tInfoCteInt)
+      {
+        return;
+      }
+      tInfoCteInt->nro = $1;
+      apilar(&pilaCteInt, tInfoCteInt);
     }
     | lista COMA CTE
     {
-        printf("\nRegla 8\n");
+      printf("\nRegla 8\n");
 
-        if(contadorElemAOperar < elemTake)
-        {
-          char aux1ListaIND[MAXINT], numStr[MAXINT], aux2ListaIND[MAXINT]; 
-          sprintf(aux1ListaIND,"%d", listaIND);
-          sprintf(numStr,"%d",$3);
-          sprintf(aux2ListaIND,"%d", insertarTerceto(&tercetos, numStr, "", ""));
-          listaIND = insertarTerceto(&tercetos, "+", aux1ListaIND, aux2ListaIND);
-          contadorElemAOperar++;
-        }
-        elemEnLista++;
+      //if(contadorElemAOperar < elemTake)
+      //{
+        char aux1ListaIND[MAXINT], numStr[MAXINT], aux2ListaIND[MAXINT]; 
+        sprintf(aux1ListaIND,"[%d]", listaIND);
+        sprintf(numStr,"%d",$3);
+        sprintf(aux2ListaIND,"[%d]", insertarTerceto(&tercetos, numStr, "", ""));
+        listaIND = insertarTerceto(&tercetos, "+", aux1ListaIND, aux2ListaIND);
+        //contadorElemAOperar++;
+      //}
+      elemEnLista++;
+
+      t_info *tInfoCteInt=(t_info*) malloc(sizeof(t_info));
+      if(!tInfoCteInt)
+      {
+        return;
+      }
+      tInfoCteInt->nro = $3;
+      apilar(&pilaCteInt, tInfoCteInt);
     }
     ;
 
@@ -251,12 +356,30 @@ wrt:
     {
       printf("\nRegla 9\n");
 
-      wrtIND = insertarTerceto(&tercetos, "WRITE", $2, "");
-      printf("WRITE: %d", wrtIND);
+      wrtIND = insertarTerceto(&tercetos, "WRITES", $2, "");
+      //printf("WRITE: %d", wrtIND);
+      t_info *tInfoCteString=(t_info*) malloc(sizeof(t_info));
+      if(!tInfoCteString)
+      {
+        return;
+      }
+      tInfoCteString->cadena = $2;
+      apilar(&pilaCteString, tInfoCteString);
+      contPilaCteString++;
     }
     | WRITE ID 
     {
       printf("\nRegla 10\n");
+
+      wrtIND = insertarTerceto(&tercetos, "WRITEI", $2, "");
+
+      /*t_info *tInfoVarInt=(t_info*) malloc(sizeof(t_info));
+      if(!tInfoVarInt)
+      {
+        return;
+      }
+      tInfoVarInt->cadena = $2;
+      apilar(&pilaVarInt, tInfoVarInt);*/
     }
     ;
 
@@ -271,7 +394,9 @@ int main(int argc,char *argv[])
   //int value = 0;
   //fprintf(archTabla,"%s\n","NOMBRE\t\t\tTIPODATO\t\tVALOR");
   posicionTerceto = 1;
-  elemTake = 5; //                   ->            LUEGO BORRAR
+  //elemTake = 20; //                   ->            LUEGO BORRAR
+  contPilaCteString = 0;
+  contPilaVarInt = 0;
 
   if ((yyin = fopen(argv[1], "rt")) == NULL)
   {
@@ -280,20 +405,25 @@ int main(int argc,char *argv[])
   else
   {
     printf("\nIniciando main\n");
-    crearPila(&pilaIds);
+    crearPila(&pilaCteString);
+    crearPila(&pilaCteInt);
+    crearPila(&pilaVarInt);
     crearTerceto(&tercetos);
-    //crearPila(&pilaCMP);
-    //crearPila(&pilaTipoDato);
     printf("Iniciando Parsing\n");
     yyparse();
     printf("Fin Parsing\n");
+
+    printf("---> elemEnLista = %d\n", elemEnLista);
+    printf("contPilaCteString = %d\n", contPilaCteString);
+    printf("contPilaVarInt = %d\n", contPilaVarInt);
+
   }
   if(guardarTercetos(&tercetos) < 0)
   {
     printf("\nError generando el archivo de notacion intermedia\n");
     return 0;
   }
-  
+  generarAssembler(&tercetos);
   //printf("Validando tipo de dato: %d",validarTipoDatoEnTS("a1","STRING"));
   //mostrarTS();
   //guardarTS();
@@ -612,30 +742,30 @@ int insertarTerceto(t_terceto* p, char *cad1, char *cad2, char *cad3)
       printf("\nError al insertar terceto\n");
       return ERROR;
   }
-  printf("Iniciando insertarTerceto\n");
+  //printf("Iniciando insertarTerceto\n");
   t_nodoTerceto* aux;
     
   //Ponemos la posicion en el terceto
   int indice = posicionTerceto++;
   nue->info.nro = indice;
-  printf("posicionTerceto++\n");
+  //printf("posicionTerceto++\n");
   //Asignamos las cadenas al nodo
   strcpy(nue->info.cad1,cad1);
-  printf("cad1 asignada\n");
+  //printf("cad1 asignada\n");
   strcpy(nue->info.cad2,cad2);
-  printf("cad2 asignada\n");
+  //printf("cad2 asignada\n");
   strcpy(nue->info.cad3,cad3);
-  printf("cad3 asignada\n");
+  //printf("cad3 asignada\n");
   //Hacemos que sea el último nodo en la lista de tercetos
   nue->psig=NULL;
-  printf("psig creado\n");
+  //printf("psig creado\n");
       
   while(*p)
   {
       p=&(*p)->psig;
   }
   *p=nue;
-  printf("p apunta a nue, fin insertarTerceto\n");
+  //printf("p apunta a nue, fin insertarTerceto\n");
 
   return indice;
 }
@@ -688,3 +818,147 @@ int guardarTercetos(t_terceto *p)
 
 	    return ERROR;
 }*/
+
+
+////////////////////////////////////////////////ASSEMBLER////////////////////////////////////////////////
+
+
+void generarAssembler(t_terceto *p)
+{
+  t_nodoTerceto *aux; 
+  char *primera;
+  char *segunda;
+  char *tercera;
+
+  FILE* pf=fopen("final.asm","w+");
+  if(!pf){
+    printf("Error al guardar el archivo assembler.\n");
+    exit(1);
+  }
+
+  ///INICIO ARCHIVO ASM
+
+  fprintf(pf,"include macros2.asm\n");
+  //fprintf(pf,"include macros.asm\n");
+  fprintf(pf,"include number.asm\n\n");
+  fprintf(pf,".MODEL LARGE\n.386\n.STACK 200h\n\n.DATA\n");
+
+
+  ///DECLARACIONES
+  
+  int pcs, pci, pvi;
+  char cteString[MAXCAD], varInt[MAXCAD], cteStringNom[MAXCAD];
+
+
+  for(pcs=contPilaCteString; pcs >= 1; pcs--)
+  {
+    desapilar_str(&pilaCteString, cteString);
+    fprintf(pf,"@cte_string%d db %s, '$', 30 dup (?)\n", pcs, cteString);
+    
+    printf("Numero a asignarse: %d\n", pcs);
+    sprintf(cteStringNom,"cte_string%d", pcs);
+    printf("Nombre a asignarse: %s\n", cteStringNom);
+    t_info *tInfoCteStringTP=(t_info*) malloc(sizeof(t_info));
+    if(!tInfoCteStringTP)
+    {
+      return;
+    }
+    tInfoCteStringTP->cadena = cteStringNom;
+    apilar(&pilaCteStringTP, tInfoCteStringTP);
+  }
+
+  for(pci=elemEnLista; pci >= 1; pci--)
+  {
+    fprintf(pf,"@cte_int%d dd %d\n", pci, desapilar_nro(&pilaCteInt));
+  }
+
+  for(pvi=contPilaVarInt; pvi >= 1; pvi--)
+  {
+    desapilar_str(&pilaVarInt, varInt);
+    fprintf(pf,"@%s dd ?\n", varInt);
+  }
+
+  fprintf(pf,"%s dd ?\n", elemTakeVar);
+
+  fprintf(pf,"@elemEnLista dd %d\n", elemEnLista);
+
+  ///Declaraciones de constantes fijas
+  fprintf(pf,"@cero dd 0\n");
+  fprintf(pf,"@uno dd 1\n");
+  fprintf(pf,"@contadorTake dd 0\n");
+  fprintf(pf,"@resTake dd 0\n");
+  char error1[] = "Error: El numero de elementos a operar debe ser mayor a 0";
+  fprintf(pf,"@error1 db %s, '$', 30 dup (?)\n", error1);
+  char error2[] = "Error: El numero de elementos en la lista es menor al indicado para operar";
+  fprintf(pf,"@error2 db %s, '$', 30 dup (?)\n", error2);
+
+
+  ///CODIGO
+
+  fprintf(pf,"\n.CODE\n");
+
+  ///Procedures
+  fprintf(pf,"\ncopy proc\n\tcpy_nxt:\n\tmov al, [si]\n\tmov [di], al\n\tinc si\n\tinc di\n\tcmp byte ptr [si],0\n\tjne cpy_nxt\n\tret\n\tcopy endp\n");
+
+  fprintf(pf,"\nMAIN:\n");
+
+  fprintf(pf,"MOV EAX,@DATA\n");
+  fprintf(pf,"MOV DS,EAX\n");
+  fprintf(pf,"MOV ES,EAX\n\n");
+
+  printf("\n");
+
+  ///Recorrer Tercetos
+  while(*p)
+  {
+    aux = *p;
+
+    ///Obtengo el terceto en partes
+    primera = (char *) malloc (sizeof((*p)->info.cad1));
+    sprintf(primera,"%s",(*p)->info.cad1);
+    segunda = (char *) malloc (sizeof((*p)->info.cad2));
+    sprintf(segunda,"%s",(*p)->info.cad2);
+    tercera = (char *) malloc (sizeof((*p)->info.cad3));
+    sprintf(tercera,"%s",(*p)->info.cad3);
+
+    printf("1: %s | 2: %s | 3: %s\n", primera, segunda, tercera);
+
+    ///WRITE
+    if(strcmpi(primera,"WRITES")==0)
+    {
+      char cteStringTP[MAXCAD];
+      fprintf(pf,";WRITE\n");
+      desapilar_str(&pilaCteStringTP, cteStringTP);
+      fprintf(pf,"\tdisplayString \t@%s\n\tnewLine 1\n", cteStringTP);
+    }
+    else
+    {
+      if(strcmpi(primera,"WRITEI")==0)
+      {
+        fprintf(pf,";WRITE\n");
+        fprintf(pf,"\tdisplayInteger \t@%s,3\n\tnewLine 1\n", segunda);
+      }
+    }
+
+    ///READ
+
+    
+
+
+
+
+    *p=(*p)->psig;
+    free(aux);
+  }
+
+
+  ///FINAL ARCHIVO ASM
+
+  fprintf(pf,"\n\tMOV EAX, 4c00h\n\tINT 21h\n");
+  fprintf(pf,"END MAIN\n\n;FIN DEL PROGRAMA DE USUARIO\n");
+
+  fclose(pf);
+
+  printf("\n------------ Archivo assembler generado ------------\n");
+
+}
