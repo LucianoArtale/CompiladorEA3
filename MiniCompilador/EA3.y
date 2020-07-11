@@ -941,7 +941,8 @@ void generarAssembler(t_terceto *p)
     {
       return;
     }
-    tInfoCteStringTP->cadena = cteStringNom;
+    //tInfoCteStringTP->cadena = cteStringNom;
+    tInfoCteStringTP->nro = pcs;
     apilar(&pilaCteStringTP, tInfoCteStringTP);
   }
 
@@ -1014,8 +1015,9 @@ void generarAssembler(t_terceto *p)
     {
       char cteStringTP[MAXCAD];
       fprintf(pf,";WRITE\n");
-      desapilar_str(&pilaCteStringTP, cteStringTP);
-      fprintf(pf,"\tdisplayString \t@%s\n\tnewLine 1\n", cteStringTP);
+      //desapilar_str(&pilaCteStringTP, cteStringTP);
+      //fprintf(pf,"\tdisplayString \t@%s\n\tnewLine 1\n", cteStringTP);
+      fprintf(pf,"\tdisplayString \t@cte_string%d\n\tnewLine 1\n", desapilar_nro(&pilaCteStringTP));
     }
     else
     {
